@@ -22,33 +22,33 @@ export function getServerSideProps() {
 export default function ChatPage({ supabaseUrl, supabaseKey }) {
   const [message, setMessage] = React.useState([]);
   const [messageList, setMessageList] = React.useState([]);
-
+  const [isLoaded, setIsLoaded] = React.useState(false);
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  function updateChat( data, method) {
-    switch(method) {
-      case('reload'):
+  function updateChat(data, method) {
+    switch (method) {
+      case ('reload'):
         setMessageList(data);
-      break;
-      case('post'):
-        setMessageList((updatedListState) => { 
+        break;
+      case ('post'):
+        setMessageList((updatedListState) => {
           return [
             data,
             ...updatedListState,
           ]
         })
-      break;
-      case('delete'):
+        break;
+      case ('delete'):
         setMessageList((updatedListState) => {
-          const listWithoutMessageClicked = updatedListState.filter( message => {
+          const listWithoutMessageClicked = updatedListState.filter(message => {
             return message.id != data
           })
           return listWithoutMessageClicked
         })
-      break;
+        break;
     }
   }
-  
+
   function sendMessage(message) {
     const messageData = {
       texto: message,
@@ -72,7 +72,7 @@ export default function ChatPage({ supabaseUrl, supabaseKey }) {
     supabaseClient
       .from('messageList')
       .delete()
-      .match( { id: messageId })
+      .match({ id: messageId })
       .then(({ data }) => {
         console.log("Mensagem deletada: ", data)
         //updateChat(data[0].id, 'delete')
@@ -87,21 +87,21 @@ export default function ChatPage({ supabaseUrl, supabaseKey }) {
       .then(({ data }) => {
         updateChat(data, 'reload');
       });
-    
+
     const subscription = supabaseClient
       .from("messageList")
       .on('INSERT', (data) => {
         updateChat(data.new, 'post')
       })
-      .on('DELETE', ({old}) => {
+      .on('DELETE', ({ old }) => {
         updateChat(old.id, 'delete')
       })
       .subscribe()
 
     return () => {
       subscription.unsubscribe();
-    }  
-      
+    }
+
   }, []);
 
   function onStickerClick(sticker) {
